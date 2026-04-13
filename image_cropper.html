@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Cropper</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #0f0f0f;
+        --surface: #1a1a1a;
+        --border: #2a2a2a;
+        --accent: #e8d5a3;
+        --accent-dim: #a08c5b;
+        --text: #e0ddd6;
+        --text-dim: #6b6860;
+        --danger: #c0392b;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-weight: 300;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      header h1 {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      header .coords {
+        margin-left: auto;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+        min-width: 280px;
+        text-align: right;
+      }
+
+      .workspace {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        gap: 1.5rem;
+      }
+
+      .drop-zone {
+        width: 100%;
+        max-width: 700px;
+        border: 1px dashed var(--border);
+        border-radius: 4px;
+        padding: 4rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--accent-dim);
+        background: rgba(232, 213, 163, 0.03);
+      }
+
+      .drop-zone .icon {
+        font-size: 32px;
+        opacity: 0.3;
+      }
+
+      .drop-zone p {
+        font-size: 13px;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+
+      .drop-zone span {
+        color: var(--accent);
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-color: var(--accent-dim);
+      }
+
+      #file-input { display: none; }
+
+      .canvas-wrapper {
+        position: relative;
+        display: none;
+        cursor: crosshair;
+        border: 1px solid var(--border);
+        line-height: 0;
+      }
+
+      #main-canvas { display: block; max-width: 100%; }
+
+      .selection-box {
+        position: absolute;
+        border: 1px solid var(--accent);
+        background: rgba(232, 213, 163, 0.08);
+        pointer-events: none;
+        display: none;
+        box-shadow: 0 0 0 1000px rgba(0,0,0,0.45);
+      }
+
+      .selection-box::before,
+      .selection-box::after {
+        content: '';
+        position: absolute;
+        background: var(--accent);
+      }
+      .selection-box::before { left: 50%; top: 0; bottom: 0; width: 1px; opacity: 0.3; transform: translateX(-50%); }
+      .selection-box::after  { top: 50%; left: 0; right: 0; height: 1px; opacity: 0.3; transform: translateY(-50%); }
+
+      .toolbar {
+        display: none;
+        gap: 0.75rem;
+        align-items: center;
+        width: 100%;
+        max-width: 700px;
+      }
+
+      .size-info {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-right: auto;
+      }
+
+      .size-info span { color: var(--accent); }
+
+      button {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.5rem 1.25rem;
+        border-radius: 2px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      button:hover { border-color: var(--accent-dim); color: var(--text); }
+
+      button.primary {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      button.primary:hover { background: var(--accent); color: var(--bg); }
+      button.primary:disabled { opacity: 0.3; cursor: not-allowed; }
+      button.primary:disabled:hover { background: transparent; color: var(--accent); }
+
+      button.danger { border-color: #3a1a1a; color: #804040; }
+      button.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+      .preview-section {
+        display: none;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 700px;
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+      }
+
+      .preview-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      #preview-canvas {
+        max-width: 100%;
+        border: 1px solid var(--border);
+        display: block;
+        background: repeating-conic-gradient(#1f1f1f 0% 25%, #181818 0% 50%) 0 0 / 16px 16px;
+      }
+
+      .preview-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+      .filename-input {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        color: var(--text);
+        padding: 0.5rem 0.75rem;
+        width: 200px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .filename-input:focus { border-color: var(--accent-dim); }
+      .filename-input::placeholder { color: var(--text-dim); }
+    </style>
+  </head>
+  <body>
+
+    <header>
+      <h1>// Image Cropper</h1>
+      <div class="coords" id="coords">x: — &nbsp; y: — &nbsp; | &nbsp; w: — &nbsp; h: —</div>
+    </header>
+
+    <div class="workspace">
+
+    <div class="drop-zone" id="drop-zone">
+      <div class="icon">⬡</div>
+      <p>Drop an image here, or <span id="browse-btn">browse</span></p>
+      <p>PNG · JPG · WEBP · GIF</p>
+    </div>
+    <input type="file" id="file-input" accept="image/*">
+
+    <div class="canvas-wrapper" id="canvas-wrapper">
+      <canvas id="main-canvas"></canvas>
+      <div class="selection-box" id="selection-box"></div>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+      <div class="size-info" id="size-info">select a region</div>
+      <button id="reset-btn" class="danger">Reset</button>
+      <button id="crop-btn" class="primary" disabled>Crop</button>
+    </div>
+
+    <div class="preview-section" id="preview-section">
+      <div class="preview-label">// Preview</div>
+      <canvas id="preview-canvas"></canvas>
+      <div class="preview-actions">
+        <input type="text" class="filename-input" id="filename-input" placeholder="filename" value="crop">
+        <button class="primary" id="save-btn">Save PNG</button>
+        <button id="new-crop-btn">New crop</button>
+      </div>
+    </div>
+
+    </div>
+
+    <script>
+      const dropZone      = document.getElementById('drop-zone');
+      const fileInput     = document.getElementById('file-input');
+      const browseBtn     = document.getElementById('browse-btn');
+      const wrapper       = document.getElementById('canvas-wrapper');
+      const mainCanvas    = document.getElementById('main-canvas');
+      const selBox        = document.getElementById('selection-box');
+      const toolbar       = document.getElementById('toolbar');
+      const sizeInfo      = document.getElementById('size-info');
+      const cropBtn       = document.getElementById('crop-btn');
+      const resetBtn      = document.getElementById('reset-btn');
+      const previewSec    = document.getElementById('preview-section');
+      const previewCanvas = document.getElementById('preview-canvas');
+      const saveBtn       = document.getElementById('save-btn');
+      const newCropBtn    = document.getElementById('new-crop-btn');
+      const coordsEl      = document.getElementById('coords');
+      const filenameInput = document.getElementById('filename-input');
+
+      const ctx = mainCanvas.getContext('2d');
+      let img = null, scale = 1;
+      let isDragging = false;
+      let startX = 0, startY = 0, selX = 0, selY = 0, selW = 0, selH = 0;
+
+      browseBtn.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+      dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) loadImage(file);
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) loadImage(fileInput.files[0]);
+      });
+
+      function loadImage(file) {
+        const url = URL.createObjectURL(file);
+        img = new Image();
+        img.onload = () => {
+          const maxW = Math.min(window.innerWidth - 80, 900);
+          const maxH = window.innerHeight * 0.65;
+          scale = Math.min(1, maxW / img.width, maxH / img.height);
+          mainCanvas.width  = Math.round(img.width  * scale);
+          mainCanvas.height = Math.round(img.height * scale);
+          ctx.drawImage(img, 0, 0, mainCanvas.width, mainCanvas.height);
+
+          dropZone.style.display = 'none';
+          wrapper.style.display  = 'block';
+          toolbar.style.display  = 'flex';
+          previewSec.style.display = 'none';
+          resetSelection();
+        };
+        img.src = url;
+      }
+
+      function canvasPos(e) {
+        const r = mainCanvas.getBoundingClientRect();
+        return {
+          x: Math.max(0, Math.min(mainCanvas.width,  Math.round(e.clientX - r.left))),
+          y: Math.max(0, Math.min(mainCanvas.height, Math.round(e.clientY - r.top)))
+        };
+      }
+
+      mainCanvas.addEventListener('mousedown', e => {
+          const p = canvasPos(e);
+          startX = p.x; startY = p.y;
+          isDragging = true;
+          selBox.style.display = 'block';
+          cropBtn.disabled = true;
+          updateBox(p.x, p.y, 0, 0);
+      });
+
+      mainCanvas.addEventListener('mousemove', e => {
+          const p = canvasPos(e);
+          const rx = Math.round(p.x / scale), ry = Math.round(p.y / scale);
+          if (isDragging) {
+            const x = Math.min(startX, p.x), y = Math.min(startY, p.y);
+            const w = Math.abs(p.x - startX), h = Math.abs(p.y - startY);
+            updateBox(x, y, w, h);
+            const rw = Math.round(w / scale), rh = Math.round(h / scale);
+            coordsEl.textContent = `x: ${Math.round(x/scale)}  y: ${Math.round(y/scale)}  |  w: ${rw}  h: ${rh}`;
+          } else {
+            coordsEl.textContent = `x: ${rx}  y: ${ry}  |  w: —  h: —`;
+          }
+      });
+
+      mainCanvas.addEventListener('mouseup', e => {
+        if (!isDragging) return;
+        isDragging = false;
+        const p = canvasPos(e);
+        selX = Math.min(startX, p.x);
+        selY = Math.min(startY, p.y);
+        selW = Math.abs(p.x - startX);
+        selH = Math.abs(p.y - startY);
+        if (selW > 4 && selH > 4) {
+          cropBtn.disabled = false;
+          const rw = Math.round(selW / scale), rh = Math.round(selH / scale);
+          sizeInfo.innerHTML = `<span>${rw}</span> × <span>${rh}</span> px`;
+        } else {
+          resetSelection();
+        }
+      });
+
+      mainCanvas.addEventListener('mouseleave', () => {
+        if (isDragging) { isDragging = false; }
+      });
+
+      function updateBox(x, y, w, h) {
+        selBox.style.left   = x + 'px';
+        selBox.style.top    = y + 'px';
+        selBox.style.width  = w + 'px';
+        selBox.style.height = h + 'px';
+      }
+
+      function resetSelection() {
+        selBox.style.display = 'none';
+        cropBtn.disabled = true;
+        sizeInfo.innerHTML = 'select a region';
+        selX = selY = selW = selH = 0;
+      }
+
+      cropBtn.addEventListener('click', () => {
+        if (!img || selW === 0) return;
+        const rx = Math.round(selX / scale);
+        const ry = Math.round(selY / scale);
+        const rw = Math.round(selW / scale);
+        const rh = Math.round(selH / scale);
+
+        previewCanvas.width  = rw;
+        previewCanvas.height = rh;
+        const pCtx = previewCanvas.getContext('2d');
+        pCtx.drawImage(img, rx, ry, rw, rh, 0, 0, rw, rh);
+
+        previewSec.style.display = 'flex';
+        previewSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+
+      saveBtn.addEventListener('click', () => {
+        const filename = (filenameInput.value.trim() || 'crop') + '.png';
+        previewCanvas.toBlob(blob => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+        }, 'image/png');
+      });
+
+      newCropBtn.addEventListener('click', () => {
+        previewSec.style.display = 'none';
+        resetSelection();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        dropZone.style.display = '';
+        wrapper.style.display  = 'none';
+        toolbar.style.display  = 'none';
+        previewSec.style.display = 'none';
+        img = null;
+        fileInput.value = '';
+        resetSelection();
+      });
+    </script>
+  </body>
+</html>
