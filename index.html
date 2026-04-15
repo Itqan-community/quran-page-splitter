@@ -1,17 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
     <title>Image Cropper · Dual‑panel layout</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/style.css" />
     <script src="static/js/script.js" defer></script>
   </head>
   <body>
-
     <header>
       <h1>✧ DUAL‑VIEW CROPPER</h1>
-      <div class="coords" id="coords">x: —  y: —  |  w: —  h: —</div>
+      <div class="coords" id="coords">x: — y: — | w: — h: —</div>
     </header>
 
     <div class="workspace" id="workspace">
@@ -21,7 +23,7 @@
         <p>Drop an image here, or <span id="browse-btn">browse</span></p>
         <p>PNG · JPG · WEBP · GIF</p>
       </div>
-      <input type="file" id="file-input" accept="image/*">
+      <input type="file" id="file-input" accept="image/*" />
 
       <!-- cropping interface (hidden until image loaded) -->
       <div class="canvas-wrapper" id="canvas-wrapper">
@@ -34,21 +36,35 @@
         <div class="toolbar" id="toolbar">
           <div class="toolbar-row">
             <div class="size-info" id="size-info">⚡ no active crop</div>
-            <div style="display: flex; gap: 8px;">
-              <button id="start-crop-btn" class="primary" disabled>✧ Start cropping</button>
+            <div style="display: flex; gap: 8px">
+              <button id="start-crop-btn" class="primary" disabled>
+                ✧ Start cropping
+              </button>
               <button id="reset-btn" class="danger">⟳ Reset all</button>
             </div>
           </div>
-          
+
           <!-- manual coordinate inputs -->
           <div class="crop-inputs" id="crop-inputs-panel">
-            <div class="input-group"><label>X (px)</label><input type="number" id="crop-x" step="1" value="0" disabled></div>
-            <div class="input-group"><label>Y (px)</label><input type="number" id="crop-y" step="1" value="0" disabled></div>
-            <div class="input-group"><label>WIDTH</label><input type="number" id="crop-w" step="1" value="0" disabled></div>
-            <div class="input-group"><label>HEIGHT</label><input type="number" id="crop-h" step="1" value="0" disabled></div>
+            <div class="input-group">
+              <label>X (px)</label
+              ><input type="number" id="crop-x" step="1" value="0" disabled />
+            </div>
+            <div class="input-group">
+              <label>Y (px)</label
+              ><input type="number" id="crop-y" step="1" value="0" disabled />
+            </div>
+            <div class="input-group">
+              <label>WIDTH</label
+              ><input type="number" id="crop-w" step="1" value="0" disabled />
+            </div>
+            <div class="input-group">
+              <label>HEIGHT</label
+              ><input type="number" id="crop-h" step="1" value="0" disabled />
+            </div>
           </div>
-          
-          <div class="toolbar-row" style="justify-content: flex-end;">
+
+          <div class="toolbar-row" style="justify-content: flex-end">
             <button id="crop-btn" class="primary">✂︎ Apply crop (live)</button>
           </div>
         </div>
@@ -57,13 +73,18 @@
           <div class="preview-label">// Live cropped preview</div>
           <canvas id="preview-canvas"></canvas>
           <div class="preview-actions">
-            <input type="text" class="filename-input" id="filename-input" placeholder="filename" value="cropped">
+            <input
+              type="text"
+              class="filename-input"
+              id="filename-input"
+              placeholder="filename"
+              value="cropped"
+            />
             <button class="primary" id="save-btn">Save PNG</button>
             <button id="new-crop-btn">⟳ New crop</button>
           </div>
         </div>
       </div>
     </div>
-
   </body>
 </html>
