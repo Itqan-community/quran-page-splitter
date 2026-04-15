@@ -9,7 +9,7 @@ Example:
 import argparse
 from pathlib import Path
 from PIL import Image
-from line_cutter import crop_lines
+from script.line_cutter import crop_lines
 
 
 def make_transparent(crop: Image.Image, threshold: int = 200) -> Image.Image:

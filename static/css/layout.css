@@ -1,0 +1,42 @@
+/* default: single column on small screens */
+.workspace.cropper-active {
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+/* two-column grid on large screens */
+@media (min-width: 900px) {
+  .workspace.cropper-active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  .workspace.cropper-active .canvas-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  .workspace.cropper-active .right-stack {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .workspace.cropper-active .toolbar {
+    flex-shrink: 0;
+  }
+  .workspace.cropper-active .preview-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    min-height: 0;
+  }
+  .workspace.cropper-active #preview-canvas {
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
