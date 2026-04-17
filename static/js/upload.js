@@ -1,7 +1,15 @@
 import { state } from "./state.js";
 import { drawToCanvas, ctx, mainCanvas } from "./canvas.js";
 import { deactivateCrop } from "./crop.js";
-import { previewSec, submitBtn, coordsEl, updateQueueInfo } from "./ui.js";
+import {
+  previewSec,
+  submitBtn,
+  coordsEl,
+  updateQueueInfo,
+  renderCarousel,
+  updateCropOutputStatus,
+  syncCropModeUI,
+} from "./ui.js";
 
 const MAX_FILES = 610;
 const ENDPOINT = "http://localhost:8000/upload/";
@@ -14,8 +22,24 @@ export function handleFileSelection(files) {
     alert(`Only the first ${MAX_FILES} images will be used.`);
   }
   state.imageFiles = images.slice(0, MAX_FILES);
-  loadImageFile(state.imageFiles[0]);
+  state.selectedImageIndex = 0;
+  state.globalOutputs.bounds = null;
+  state.globalOutputs.suraNameBlob = null;
+  state.globalOutputs.ayaSeparatorBlob = null;
+  state.activeCropMode = "bounds";
+  loadImageAtIndex(0);
   updateQueueInfo();
+  renderCarousel();
+  updateCropOutputStatus();
+  syncCropModeUI();
+}
+
+export function loadImageAtIndex(index) {
+  if (!state.imageFiles.length) return;
+  const clamped = Math.max(0, Math.min(index, state.imageFiles.length - 1));
+  state.selectedImageIndex = clamped;
+  loadImageFile(state.imageFiles[clamped]);
+  renderCarousel();
 }
 
 function loadImageFile(file) {
@@ -23,11 +47,13 @@ function loadImageFile(file) {
   const imgEl = new Image();
   imgEl.onload = () => {
     state.img = imgEl;
+    state.currentImageFile = file;
     state.imgNaturalWidth = imgEl.width;
     state.imgNaturalHeight = imgEl.height;
     drawToCanvas(imgEl);
 
     document.getElementById("drop-zone").style.display = "none";
+    document.getElementById("left-stack").style.display = "flex";
     document.getElementById("canvas-wrapper").style.display = "block";
     document.getElementById("toolbar").style.display = "flex";
     previewSec.style.display = "none";
@@ -43,12 +69,19 @@ function loadImageFile(file) {
 // ---- full reset ----
 export function fullReset() {
   document.getElementById("drop-zone").style.display = "";
+  document.getElementById("left-stack").style.display = "none";
   document.getElementById("canvas-wrapper").style.display = "none";
   document.getElementById("toolbar").style.display = "none";
   previewSec.style.display = "none";
   document.getElementById("workspace").classList.remove("cropper-active");
   state.img = null;
+  state.currentImageFile = null;
   state.imageFiles = [];
+  state.selectedImageIndex = 0;
+  state.activeCropMode = "bounds";
+  state.globalOutputs.bounds = null;
+  state.globalOutputs.suraNameBlob = null;
+  state.globalOutputs.ayaSeparatorBlob = null;
   document.getElementById("file-input").value = "";
   deactivateCrop();
   state.selectionActive = false;
@@ -56,12 +89,20 @@ export function fullReset() {
   coordsEl.textContent = `x: —  y: —  |  w: —  h: —`;
   ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
   updateQueueInfo();
+  renderCarousel();
+  updateCropOutputStatus();
+  syncCropModeUI();
 }
 
 // ---- POST submission ----
 export async function submitCrop() {
-  if (!state.img || !state.selectionActive || state.cropW <= 0) {
-    alert("Please define a crop region first.");
+  const { bounds, suraNameBlob, ayaSeparatorBlob } = state.globalOutputs;
+  if (!state.imageFiles.length) {
+    alert("Please upload images first.");
+    return;
+  }
+  if (!bounds || !suraNameBlob || !ayaSeparatorBlob) {
+    alert("Please complete bounds, sura_name, and aya_separator crops first.");
     return;
   }
 
@@ -69,11 +110,13 @@ export async function submitCrop() {
   submitBtn.textContent = "Uploading…";
 
   const fd = new FormData();
-  state.imageFiles.forEach((f) => fd.append("images", f));
-  fd.append("crop_x", state.cropX);
-  fd.append("crop_y", state.cropY);
-  fd.append("crop_w", state.cropW);
-  fd.append("crop_h", state.cropH);
+  state.imageFiles.forEach((f) => fd.append("files", f));
+  fd.append("left", bounds.left);
+  fd.append("top", bounds.top);
+  fd.append("width", bounds.width);
+  fd.append("height", bounds.height);
+  fd.append("sura_name", suraNameBlob, "sura_name.png");
+  fd.append("aya_separator", ayaSeparatorBlob, "aya_separator.png");
 
   try {
     const res = await fetch(ENDPOINT, { method: "POST", body: fd });

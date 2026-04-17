@@ -51,6 +51,14 @@
   display: none;
 }
 
+/* ---- left stack ---- */
+.left-stack {
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
 /* ---- canvas wrapper + selection box ---- */
 .canvas-wrapper {
   position: relative;
@@ -134,6 +142,25 @@
   color: var(--accent-dim);
   letter-spacing: 0.05em;
 }
+.crop-status {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.status-pill {
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: lowercase;
+}
+.status-pill.complete {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* ---- crop inputs ---- */
 .crop-inputs {
@@ -176,6 +203,19 @@
 .input-group input:disabled {
   opacity: 0.4;
   color: var(--text-dim);
+}
+.input-group select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0.4rem 0.6rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--accent);
+  outline: none;
+}
+.input-group select:focus {
+  border-color: var(--accent-dim);
 }
 
 .size-info {
@@ -241,6 +281,52 @@ button.danger:hover {
   padding: 1rem 1.25rem;
   border-radius: 6px;
   border: 1px solid var(--border);
+}
+.carousel {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  background: var(--surface);
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.carousel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.carousel-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+.thumb-strip {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.25rem;
+}
+.thumb {
+  border: 1px solid var(--border);
+  background: #111;
+  border-radius: 2px;
+  overflow: hidden;
+  line-height: 0;
+  cursor: pointer;
+  min-width: 96px;
+  flex: 0 0 96px;
+}
+.thumb.active {
+  border-color: var(--accent);
+}
+.thumb img {
+  width: 100%;
+  height: 64px;
+  object-fit: cover;
+  display: block;
 }
 .preview-label {
   font-family: "IBM Plex Mono", monospace;

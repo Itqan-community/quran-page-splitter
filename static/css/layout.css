@@ -1,7 +1,28 @@
+.container {
+  margin-inline: auto;
+  max-width: 80rem;
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .container {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .container {
+    padding-inline: 2rem;
+  }
+}
+
 /* default: single column on small screens */
 .workspace.cropper-active {
   align-items: stretch;
   justify-content: flex-start;
+}
+.workspace.cropper-active .left-stack {
+  display: flex;
 }
 
 /* two-column grid on large screens */
@@ -12,8 +33,12 @@
     gap: 2rem;
     align-items: start;
   }
+  .workspace.cropper-active .left-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
   .workspace.cropper-active .canvas-wrapper {
-    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;

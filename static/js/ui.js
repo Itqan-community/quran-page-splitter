@@ -13,6 +13,16 @@ export const previewCanvas = document.getElementById("preview-canvas");
 export const coordsEl = document.getElementById("coords");
 export const queueInfo = document.getElementById("queue-info");
 export const submitBtn = document.getElementById("submit-btn");
+export const carousel = document.getElementById("carousel");
+export const thumbStrip = document.getElementById("thumb-strip");
+export const carouselPrevBtn = document.getElementById("carousel-prev");
+export const carouselNextBtn = document.getElementById("carousel-next");
+export const cropModeSelect = document.getElementById("crop-mode");
+export const statusBounds = document.getElementById("status-bounds");
+export const statusSura = document.getElementById("status-sura");
+export const statusAya = document.getElementById("status-aya");
+const thumbObjectUrls = [];
+const THUMB_WINDOW_SIZE = 36;
 
 // ---- selection box overlay ----
 export function updateSelectionDiv() {
@@ -83,6 +93,67 @@ export function updateQueueInfo() {
   const n = state.imageFiles.length;
   queueInfo.textContent = n > 0 ? `${n} image${n > 1 ? "s" : ""} queued` : "";
   if (submitBtn) submitBtn.style.display = n > 0 ? "" : "none";
+  if (carousel) carousel.style.display = n > 0 ? "flex" : "none";
+}
+
+export function renderCarousel() {
+  if (!thumbStrip) return;
+  while (thumbObjectUrls.length) {
+    URL.revokeObjectURL(thumbObjectUrls.pop());
+  }
+  thumbStrip.innerHTML = "";
+  if (!state.imageFiles.length) return;
+
+  const half = Math.floor(THUMB_WINDOW_SIZE / 2);
+  const minStart = Math.max(0, state.imageFiles.length - THUMB_WINDOW_SIZE);
+  const start = Math.min(
+    minStart,
+    Math.max(0, state.selectedImageIndex - half),
+  );
+  const end = Math.min(state.imageFiles.length, start + THUMB_WINDOW_SIZE);
+
+  for (let index = start; index < end; index += 1) {
+    const file = state.imageFiles[index];
+    const thumb = document.createElement("button");
+    thumb.type = "button";
+    thumb.className =
+      "thumb" + (index === state.selectedImageIndex ? " active" : "");
+    thumb.dataset.index = String(index);
+    thumb.title = file.name;
+
+    const img = document.createElement("img");
+    const thumbUrl = URL.createObjectURL(file);
+    thumbObjectUrls.push(thumbUrl);
+    img.src = thumbUrl;
+    img.alt = file.name;
+    img.loading = "lazy";
+    img.decoding = "async";
+    thumb.appendChild(img);
+    thumbStrip.appendChild(thumb);
+  }
+
+  const activeThumb = thumbStrip.querySelector(".thumb.active");
+  if (activeThumb) {
+    activeThumb.scrollIntoView({
+      block: "nearest",
+      inline: "center",
+    });
+  }
+}
+
+export function updateCropOutputStatus() {
+  const { bounds, suraNameBlob, ayaSeparatorBlob } = state.globalOutputs;
+  statusBounds.textContent = `bounds: ${bounds ? "ready" : "pending"}`;
+  statusSura.textContent = `sura_name: ${suraNameBlob ? "ready" : "pending"}`;
+  statusAya.textContent = `aya_separator: ${ayaSeparatorBlob ? "ready" : "pending"}`;
+
+  statusBounds.classList.toggle("complete", Boolean(bounds));
+  statusSura.classList.toggle("complete", Boolean(suraNameBlob));
+  statusAya.classList.toggle("complete", Boolean(ayaSeparatorBlob));
+}
+
+export function syncCropModeUI() {
+  if (cropModeSelect) cropModeSelect.value = state.activeCropMode;
 }
 
 // ---- header coordinate tracker ----
