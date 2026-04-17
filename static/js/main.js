@@ -12,8 +12,19 @@ import {
   updateLivePreview,
   updateHeaderCoords,
   onCanvasMouseLeave,
+  thumbStrip,
+  carouselPrevBtn,
+  carouselNextBtn,
+  cropModeSelect,
+  updateCropOutputStatus,
+  syncCropModeUI,
 } from "./ui.js";
-import { handleFileSelection, fullReset, submitCrop } from "./upload.js";
+import {
+  handleFileSelection,
+  fullReset,
+  submitCrop,
+  loadImageAtIndex,
+} from "./upload.js";
 
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("file-input");
@@ -25,6 +36,12 @@ const saveBtn = document.getElementById("save-btn");
 const newCropBtn = document.getElementById("new-crop-btn");
 const submitBtn = document.getElementById("submit-btn");
 const filenameInput = document.getElementById("filename-input");
+
+function previewToBlob() {
+  return new Promise((resolve) => {
+    previewCanvas.toBlob((blob) => resolve(blob), "image/png");
+  });
+}
 
 // ---- file selection ----
 document.addEventListener("dragover", (e) => e.preventDefault());
@@ -54,7 +71,8 @@ fileInput.addEventListener("change", () => {
 startCropBtn.addEventListener("click", startCropping);
 resetBtn.addEventListener("click", fullReset);
 cropBtn.addEventListener("click", () => {
-  if (state.selectionActive && state.cropW > 0) updateLivePreview();
+  if (!state.selectionActive || state.cropW <= 0 || state.cropH <= 0) return;
+  updateLivePreview();
 });
 newCropBtn.addEventListener("click", () => {
   if (state.img) startCropping();
@@ -62,6 +80,30 @@ newCropBtn.addEventListener("click", () => {
 
 // ---- upload / save ----
 submitBtn.addEventListener("click", submitCrop);
+cropBtn.addEventListener("click", async () => {
+  if (!state.selectionActive || state.cropW <= 0 || state.cropH <= 0) return;
+
+  const mode = state.activeCropMode;
+  if (mode === "bounds") {
+    state.globalOutputs.bounds = {
+      left: state.cropX,
+      top: state.cropY,
+      width: state.cropW,
+      height: state.cropH,
+    };
+    updateCropOutputStatus();
+    return;
+  }
+
+  const blob = await previewToBlob();
+  if (!blob) return;
+  if (mode === "sura_name") {
+    state.globalOutputs.suraNameBlob = blob;
+  } else if (mode === "aya_separator") {
+    state.globalOutputs.ayaSeparatorBlob = blob;
+  }
+  updateCropOutputStatus();
+});
 saveBtn.addEventListener("click", () => {
   const filename = (filenameInput.value.trim() || "cropped") + ".png";
   previewCanvas.toBlob((blob) => {
@@ -70,6 +112,27 @@ saveBtn.addEventListener("click", () => {
     a.download = filename;
     a.click();
   }, "image/png");
+});
+
+// ---- crop mode + carousel ----
+cropModeSelect.addEventListener("change", () => {
+  state.activeCropMode = cropModeSelect.value;
+  syncCropModeUI();
+});
+
+thumbStrip.addEventListener("click", (e) => {
+  const btn = e.target.closest(".thumb");
+  if (!btn) return;
+  const index = Number(btn.dataset.index);
+  if (!Number.isInteger(index)) return;
+  loadImageAtIndex(index);
+});
+
+carouselPrevBtn.addEventListener("click", () => {
+  loadImageAtIndex(state.selectedImageIndex - 1);
+});
+carouselNextBtn.addEventListener("click", () => {
+  loadImageAtIndex(state.selectedImageIndex + 1);
 });
 
 // ---- manual coordinate inputs ----

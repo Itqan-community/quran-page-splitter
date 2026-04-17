@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { drawToCanvas, ctx, mainCanvas } from "./canvas.js";
-import { deactivateCrop } from "./crop.js";
+import { deactivateCrop, clampCropBounds } from "./crop.js";
 import {
   previewSec,
   submitBtn,
@@ -9,6 +9,7 @@ import {
   renderCarousel,
   updateCropOutputStatus,
   syncCropModeUI,
+  updateUIFromCrop,
 } from "./ui.js";
 
 const MAX_FILES = 610;
@@ -27,22 +28,24 @@ export function handleFileSelection(files) {
   state.globalOutputs.suraNameBlob = null;
   state.globalOutputs.ayaSeparatorBlob = null;
   state.activeCropMode = "bounds";
-  loadImageAtIndex(0);
+  loadImageAtIndex(0, { resetCrop: true });
   updateQueueInfo();
   renderCarousel();
   updateCropOutputStatus();
   syncCropModeUI();
 }
 
-export function loadImageAtIndex(index) {
+export function loadImageAtIndex(index, options = {}) {
+  const { resetCrop = false } = options;
   if (!state.imageFiles.length) return;
   const clamped = Math.max(0, Math.min(index, state.imageFiles.length - 1));
   state.selectedImageIndex = clamped;
-  loadImageFile(state.imageFiles[clamped]);
+  loadImageFile(state.imageFiles[clamped], { resetCrop });
   renderCarousel();
 }
 
-function loadImageFile(file) {
+function loadImageFile(file, options = {}) {
+  const { resetCrop = true } = options;
   const url = URL.createObjectURL(file);
   const imgEl = new Image();
   imgEl.onload = () => {
@@ -58,8 +61,31 @@ function loadImageFile(file) {
     document.getElementById("toolbar").style.display = "flex";
     previewSec.style.display = "none";
     document.getElementById("workspace").classList.add("cropper-active");
-    deactivateCrop();
-    state.selectionActive = false;
+
+    if (resetCrop) {
+      deactivateCrop();
+      state.selectionActive = false;
+    } else if (
+      state.selectionActive &&
+      state.cropW > 0 &&
+      state.cropH > 0
+    ) {
+      clampCropBounds();
+      updateUIFromCrop();
+    } else if (state.globalOutputs.bounds) {
+      const b = state.globalOutputs.bounds;
+      state.cropX = b.left;
+      state.cropY = b.top;
+      state.cropW = b.width;
+      state.cropH = b.height;
+      state.selectionActive = true;
+      clampCropBounds();
+      updateUIFromCrop();
+    } else {
+      deactivateCrop();
+      state.selectionActive = false;
+    }
+
     document.getElementById("start-crop-btn").disabled = false;
     URL.revokeObjectURL(url);
   };
