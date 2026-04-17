@@ -1,7 +1,7 @@
-import { state } from './state.js';
+import { state } from "./state.js";
 
-export const mainCanvas = document.getElementById('main-canvas');
-export const ctx = mainCanvas.getContext('2d');
+export const mainCanvas = document.getElementById("main-canvas");
+export const ctx = mainCanvas.getContext("2d");
 
 // ---- coordinate conversion ----
 export function canvasToOrig(cx, cy) {
@@ -19,7 +19,7 @@ export function drawToCanvas(imgEl) {
   const maxW = Math.min(window.innerWidth - 80, 900);
   const maxH = window.innerHeight * 0.6;
   state.scale = Math.min(1, maxW / imgEl.width, maxH / imgEl.height);
-  mainCanvas.width  = Math.round(imgEl.width  * state.scale);
+  mainCanvas.width = Math.round(imgEl.width * state.scale);
   mainCanvas.height = Math.round(imgEl.height * state.scale);
   ctx.drawImage(imgEl, 0, 0, mainCanvas.width, mainCanvas.height);
 }

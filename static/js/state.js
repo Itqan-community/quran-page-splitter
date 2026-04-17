@@ -1,7 +1,7 @@
 /** Shared mutable state — import and mutate this object everywhere. */
 export const state = {
-  img: null,               // loaded HTMLImageElement (first queued image)
-  scale: 1,                // display scale: original px → canvas px
+  img: null, // loaded HTMLImageElement (first queued image)
+  scale: 1, // display scale: original px → canvas px
   imgNaturalWidth: 0,
   imgNaturalHeight: 0,
 
@@ -12,9 +12,9 @@ export const state = {
   selectionActive: false,
 
   dragActive: false,
-  dragType: null,          // 'move' | edge/corner strings
+  dragType: null, // 'move' | edge/corner strings
   dragStartMouse: { x: 0, y: 0 },
-  dragStartCrop:  { x: 0, y: 0, w: 0, h: 0 },
+  dragStartCrop: { x: 0, y: 0, w: 0, h: 0 },
 
-  imageFiles: [],          // File[] queue — up to 610 images
+  imageFiles: [], // File[] queue — up to 610 images
 };

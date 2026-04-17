@@ -19,7 +19,9 @@
   padding: 4rem 2rem;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,15 +32,24 @@
   border-color: var(--accent-dim);
   background: rgba(232, 213, 163, 0.03);
 }
-.drop-zone .icon { font-size: 32px; opacity: 0.3; }
-.drop-zone p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+.drop-zone .icon {
+  font-size: 32px;
+  opacity: 0.3;
+}
+.drop-zone p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
 .drop-zone span {
   color: var(--accent);
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: var(--accent-dim);
 }
-#file-input { display: none; }
+#file-input {
+  display: none;
+}
 
 /* ---- canvas wrapper + selection box ---- */
 .canvas-wrapper {
@@ -51,7 +62,10 @@
   width: 100%;
   overflow: auto;
 }
-#main-canvas { display: block; max-width: 100%; }
+#main-canvas {
+  display: block;
+  max-width: 100%;
+}
 
 .selection-box {
   position: absolute;
@@ -62,7 +76,9 @@
   cursor: grab;
   box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4);
 }
-.selection-box:active { cursor: grabbing; }
+.selection-box:active {
+  cursor: grabbing;
+}
 .selection-box::before,
 .selection-box::after {
   content: "";
@@ -72,12 +88,16 @@
   pointer-events: none;
 }
 .selection-box::before {
-  left: 50%; top: 0; bottom: 0;
+  left: 50%;
+  top: 0;
+  bottom: 0;
   width: 1px;
   transform: translateX(-50%);
 }
 .selection-box::after {
-  top: 50%; left: 0; right: 0;
+  top: 50%;
+  left: 0;
+  right: 0;
   height: 1px;
   transform: translateY(-50%);
 }
@@ -134,7 +154,9 @@
   letter-spacing: 0.03em;
   color: var(--text-dim);
 }
-.input-group label { text-transform: uppercase; }
+.input-group label {
+  text-transform: uppercase;
+}
 .input-group input {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -148,15 +170,22 @@
   outline: none;
   transition: 0.15s;
 }
-.input-group input:focus  { border-color: var(--accent-dim); }
-.input-group input:disabled { opacity: 0.4; color: var(--text-dim); }
+.input-group input:focus {
+  border-color: var(--accent-dim);
+}
+.input-group input:disabled {
+  opacity: 0.4;
+  color: var(--text-dim);
+}
 
 .size-info {
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
   color: var(--text-dim);
 }
-.size-info span { color: var(--accent); }
+.size-info span {
+  color: var(--accent);
+}
 
 /* ---- buttons ---- */
 button {
@@ -173,9 +202,18 @@ button {
   cursor: pointer;
   transition: all 0.15s;
 }
-button:hover { border-color: var(--accent-dim); color: var(--text); }
-button.primary { border-color: var(--accent); color: var(--accent); }
-button.primary:hover { background: var(--accent); color: var(--bg); }
+button:hover {
+  border-color: var(--accent-dim);
+  color: var(--text);
+}
+button.primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+button.primary:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
 button.primary:disabled {
   opacity: 0.3;
   cursor: not-allowed;
@@ -184,8 +222,14 @@ button.primary:disabled:hover {
   background: transparent;
   color: var(--accent);
 }
-button.danger { border-color: #3a1a1a; color: #804040; }
-button.danger:hover { border-color: var(--danger); color: var(--danger); }
+button.danger {
+  border-color: #3a1a1a;
+  color: #804040;
+}
+button.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
 
 /* ---- preview section ---- */
 .preview-section {
@@ -209,7 +253,8 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
   max-width: 100%;
   border: 1px solid var(--border);
   display: block;
-  background: repeating-conic-gradient(#1f1f1f 0% 25%, #181818 0% 50%) 0 0 / 16px 16px;
+  background: repeating-conic-gradient(#1f1f1f 0% 25%, #181818 0% 50%) 0 0 /
+    16px 16px;
 }
 .preview-actions {
   display: flex;
@@ -228,4 +273,6 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
   width: 200px;
   outline: none;
 }
-.filename-input:focus { border-color: var(--accent-dim); }
+.filename-input:focus {
+  border-color: var(--accent-dim);
+}

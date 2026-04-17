@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
     <title>Image Cropper · Dual‑panel layout</title>
     <link rel="stylesheet" href="static/css/base.css" />
     <link rel="stylesheet" href="static/css/components.css" />
@@ -16,7 +19,6 @@
     </header>
 
     <div class="workspace" id="workspace">
-
       <!-- DROP ZONE -->
       <div class="drop-zone" id="drop-zone">
         <div class="icon">◧</div>
@@ -34,7 +36,6 @@
 
       <!-- RIGHT STACK: toolbar + preview -->
       <div class="right-stack">
-
         <div class="toolbar" id="toolbar">
           <div class="toolbar-row">
             <div>
@@ -42,7 +43,9 @@
               <div class="queue-info" id="queue-info"></div>
             </div>
             <div style="display: flex; gap: 8px">
-              <button id="start-crop-btn" class="primary" disabled>✧ Start cropping</button>
+              <button id="start-crop-btn" class="primary" disabled>
+                ✧ Start cropping
+              </button>
               <button id="reset-btn" class="danger">⟳ Reset all</button>
             </div>
           </div>
@@ -86,11 +89,14 @@
             <button class="primary" id="save-btn">Save PNG</button>
             <button id="new-crop-btn">⟳ New crop</button>
             <!-- submit-btn: hidden until images are queued (controlled by upload.js) -->
-            <button class="primary" id="submit-btn" style="display:none">↑ Upload all</button>
+            <button class="primary" id="submit-btn" style="display: none">
+              ↑ Upload all
+            </button>
           </div>
         </div>
-
-      </div><!-- /.right-stack -->
-    </div><!-- /.workspace -->
+      </div>
+      <!-- /.right-stack -->
+    </div>
+    <!-- /.workspace -->
   </body>
 </html>
