@@ -143,6 +143,9 @@ export async function submitCrop() {
   fd.append("crop_h", bounds.height);
   fd.append("sura_name", suraNameBlob, "sura_name.png");
   fd.append("aya_separator", ayaSeparatorBlob, "aya_separator.png");
+  fd.append("gap_threshold", document.getElementById("gap-threshold").value);
+  fd.append("min_line_height", document.getElementById("min-line-height").value);
+  fd.append("padding", document.getElementById("padding").value);
 
   try {
     const res = await fetch(ENDPOINT, { method: "POST", body: fd });

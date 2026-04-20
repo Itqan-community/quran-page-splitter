@@ -42,7 +42,7 @@ async def upload_images(
     crop_y: int = Form(..., description="Top coordinate of crop rectangle"),
     crop_w: int = Form(..., description="Width of crop rectangle"),
     crop_h: int = Form(..., description="Height of crop rectangle"),
-    gap_threshold: float = Form(0.1, description="Gap detection threshold"),
+    gap_threshold: float = Form(0.03, description="Gap detection threshold"),
     min_line_height: int = Form(20, description="Minimum line height in pixels"),
     padding: int = Form(4, description="Padding around each line"),
 ):
