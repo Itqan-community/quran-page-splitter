@@ -151,7 +151,6 @@ export async function submitCrop() {
     const res = await fetch(ENDPOINT, { method: "POST", body: fd });
     if (res.ok) {
       alert(`✓ ${state.imageFiles.length} image(s) uploaded successfully.`);
-      fullReset();
     } else {
       alert(`Server error: ${res.status} ${res.statusText}`);
     }
