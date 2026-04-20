@@ -14,10 +14,20 @@ import {
 
 const MAX_FILES = 610;
 const ENDPOINT = "http://localhost:8000/upload/";
+const naturalNameCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
+function sortFilesByName(files) {
+  return [...files].sort((a, b) => naturalNameCollator.compare(a.name, b.name));
+}
 
 // ---- queue setup ----
 export function handleFileSelection(files) {
-  const images = Array.from(files).filter((f) => f.type.startsWith("image/"));
+  const images = sortFilesByName(
+    Array.from(files).filter((f) => f.type.startsWith("image/")),
+  );
   if (images.length === 0) return;
   if (images.length > MAX_FILES) {
     alert(`Only the first ${MAX_FILES} images will be used.`);
@@ -105,6 +115,8 @@ export function fullReset() {
   state.imageFiles = [];
   state.selectedImageIndex = 0;
   state.activeCropMode = "bounds";
+  state.alternateHorizontalMargin = false;
+  document.getElementById("alternate-horizontal-margin").checked = false;
   state.globalOutputs.bounds = null;
   state.globalOutputs.suraNameBlob = null;
   state.globalOutputs.ayaSeparatorBlob = null;
@@ -146,6 +158,7 @@ export async function submitCrop() {
   fd.append("gap_threshold", document.getElementById("gap-threshold").value);
   fd.append("min_line_height", document.getElementById("min-line-height").value);
   fd.append("padding", document.getElementById("padding").value);
+  fd.append("alternate_horizontal_margin", state.alternateHorizontalMargin);
 
   try {
     const res = await fetch(ENDPOINT, { method: "POST", body: fd });

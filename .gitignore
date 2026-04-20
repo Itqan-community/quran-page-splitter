@@ -15,3 +15,18 @@ wheels/
 output/
 
 .vscode/
+.cursorrules
+.mcp.json
+.opencode.json
+AGENTS.md
+.claude/settings.json
+GEMINI.md
+.gitignore
+.claude/skills/review-changes.md
+.cursor/mcp.json
+.claude/skills/refactor-safely.md
+.gitignore
+.claude/skills/debug-issue.md
+CLAUDE.md
+.claude/skills/explore-codebase.md
+.windsurfrules

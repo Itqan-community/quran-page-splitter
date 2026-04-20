@@ -15,8 +15,13 @@ class CropConfig:
 
 
 @dataclass
+class ProcessingConfig:
+    alternate_horizontal_margin: bool = False
+
+
+@dataclass
 class DetectionConfig:
-    gap_threshold: float = 0.1
+    gap_threshold: float = 0.03
     min_line_height: int = 20
     padding: int = 4
 

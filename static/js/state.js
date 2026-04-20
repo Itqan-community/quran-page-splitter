@@ -19,6 +19,7 @@ export const state = {
   dragStartCrop: { x: 0, y: 0, w: 0, h: 0 },
 
   imageFiles: [], // File[] queue — up to 610 images
+  alternateHorizontalMargin: false,
   activeCropMode: "bounds",
   globalOutputs: {
     bounds: null, // { left, top, width, height }

@@ -4,7 +4,7 @@ from PIL import Image
 
 def get_line_boxes(
     image: Image.Image,
-    gap_threshold: float = 0.1,
+    gap_threshold: float = 0.03,
     min_line_height: int = 20,
     padding: int = 8,
 ) -> list[dict]:

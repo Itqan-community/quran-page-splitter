@@ -41,8 +41,8 @@ The web interface is the easiest way to visually determine the correct crop coor
    - In the toolbar, you will see a dropdown for `Target` (`bounds`, `sura_name`, `aya_separator`).
    - For **`bounds`**: Draw a rectangle around the main text body of the page to crop out the outer margins.
    - For **`sura_name`**: Draw a tight box around a Sura name decoration. This is used as a template to classify Sura headers vs. regular text lines.
-   - For **`aya_separator`**: Draw a box around an Aya marker (currently saved as an asset for future steps).
-3. **Adjust Parameters**: In the toolbar, you can tweak the line detection algorithms (see **Algorithm Parameters** below).
+   - For **`aya_separator`**: Draw a tight box around an Aya separator ornament. The backend removes the embedded number and uses this template to split detected lines by separator occurrences.
+3. **Adjust Parameters**: In the toolbar, you can tweak the line detection algorithms and choose whether pages alternate horizontal margins (see **Algorithm Parameters** below).
 4. **Upload All**: Once you have defined your bounds and templates, press `↑ Upload all`. The backend will process every page in the queue and save the results into the `results/` directory.
 
 > **💡 Best Practice: Testing the Output**
@@ -65,6 +65,7 @@ The bounding box of the actual text area on the page. Everything outside this bo
   - _Decrease it_ (e.g., `0.01`) if single lines are being split in half horizontally (e.g., splitting dots from letters).
 - **`min_line_height`** _(default: `20`)_: The minimum height (in pixels) a detected band must have to be considered a valid line. Filters out tiny artifacts, dust, or very small stray marks.
 - **`padding`** _(default: `4`)_: Number of pixels added to the top and bottom of each detected line before it is cropped and saved. Helps preserve vertical flourishes of Arabic calligraphy.
+- **`Alternate margins`** _(default: off)_: When enabled, the crop is mirrored horizontally on every other page, starting from the first page in the upload list. Files are sorted by filename in the frontend before upload, so pages like `001.png`, `002.png` are processed in natural order.
 
 ### 3. Sura Template Matching
 
@@ -73,7 +74,23 @@ The backend uses a two-stage classifier to identify Sura name headers:
 1. **Height Filter**: It flags any line that is significantly taller (>1.5x) than the median line height on the page.
 2. **Template Match**: It takes the left 15% of your provided `sura_name` crop and runs `cv2.matchTemplate` against the candidate line. If the score is ≥ `0.5`, it classifies the line as a Sura name.
 
-- _Output_: Classified Sura lines are saved as `{page}-sura_name-{idx}.png` instead of `{page}-{idx}.png`.
+- _Output_: Classified Sura lines are saved as `{page}-sura-{idx}.png`.
+
+### 4. Aya Separator Splitting
+
+After line detection, each non-sura line is processed with the uploaded `aya_separator` template:
+
+1. The separator template is cleaned to remove the number in the center.
+2. Short lines are trimmed from left/right empty margins.
+3. Repeated separator occurrences are detected and each line is split into segments.
+4. Each split keeps the separator in the preceding segment.
+
+If no separator is detected in a line, the line is kept as one output image.
+
+- _Output naming_:
+  - Unsplit line: `{page}-l001.png`
+  - Split segment: `{page}-l001-s01.png`
+  - Sura line: `{page}-sura-01.png`
 
 ---
 

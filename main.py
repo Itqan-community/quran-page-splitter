@@ -21,7 +21,7 @@ def main():
     parser.add_argument("--crop-y",          type=int,   default=60)
     parser.add_argument("--crop-w",          type=int,   default=45)
     parser.add_argument("--crop-h",          type=int,   default=60)
-    parser.add_argument("--gap-threshold",   type=float, default=0.1)
+    parser.add_argument("--gap-threshold",   type=float, default=0.03)
     parser.add_argument("--min-line-height", type=int,   default=20)
     parser.add_argument("--padding",         type=int,   default=4)
     args = parser.parse_args()

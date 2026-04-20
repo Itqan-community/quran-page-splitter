@@ -18,7 +18,7 @@ class Pipeline:
     def run(self, images_data: list[tuple[bytes, str]]) -> list[dict]:
         """Process a batch of (raw_bytes, filename) pairs."""
         results = []
-        for raw_bytes, filename in images_data:
+        for page_index, (raw_bytes, filename) in enumerate(images_data):
             logger.info("Processing %s", filename)
             try:
                 img = Image.open(io.BytesIO(raw_bytes))
@@ -26,5 +26,5 @@ class Pipeline:
                 logger.error("Failed to open %s: %s", filename, e)
                 results.append({"filename": filename, "status": "error", "message": str(e)})
                 continue
-            results.append(self.processor.process(img, filename))
+            results.append(self.processor.process(img, filename, page_index=page_index))
         return results

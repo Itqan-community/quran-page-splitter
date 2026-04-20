@@ -36,6 +36,9 @@ const saveBtn = document.getElementById("save-btn");
 const newCropBtn = document.getElementById("new-crop-btn");
 const submitBtn = document.getElementById("submit-btn");
 const filenameInput = document.getElementById("filename-input");
+const alternateHorizontalMarginInput = document.getElementById(
+  "alternate-horizontal-margin",
+);
 
 function previewToBlob() {
   return new Promise((resolve) => {
@@ -65,6 +68,9 @@ dropZone.addEventListener("drop", (e) => {
 });
 fileInput.addEventListener("change", () => {
   if (fileInput.files.length > 0) handleFileSelection(fileInput.files);
+});
+alternateHorizontalMarginInput.addEventListener("change", () => {
+  state.alternateHorizontalMargin = alternateHorizontalMarginInput.checked;
 });
 
 // ---- crop controls ----
