@@ -55,7 +55,7 @@ async def upload_images(
 
     # Save border assets
     try:
-        save_border_assets(
+        sura_path, _aya_path = save_border_assets(
             sura_data=await sura_name.read(),
             sura_name=sura_name.filename,
             aya_data=await aya_separator.read(),
@@ -82,6 +82,7 @@ async def upload_images(
             "padding": padding,
         },
         results_dir=results_dir,
+        sura_template_path=sura_path,
     )
 
     return {"status": "completed", "results": output_summary}
