@@ -136,11 +136,11 @@ export async function submitCrop() {
   submitBtn.textContent = "Uploading…";
 
   const fd = new FormData();
-  state.imageFiles.forEach((f) => fd.append("files", f));
-  fd.append("left", bounds.left);
-  fd.append("top", bounds.top);
-  fd.append("width", bounds.width);
-  fd.append("height", bounds.height);
+  state.imageFiles.forEach((f) => fd.append("images", f));
+  fd.append("crop_x", bounds.left);
+  fd.append("crop_y", bounds.top);
+  fd.append("crop_w", bounds.width);
+  fd.append("crop_h", bounds.height);
   fd.append("sura_name", suraNameBlob, "sura_name.png");
   fd.append("aya_separator", ayaSeparatorBlob, "aya_separator.png");
 

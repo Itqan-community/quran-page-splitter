@@ -1,7 +1,7 @@
 import io
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -43,9 +43,27 @@ def make_transparent(crop: Image.Image, threshold: int = 200) -> Image.Image:
                 data[x, y] = (r, g, b, 0)
     return rgba
 
+
+def _save_upload_to_results(
+    data: bytes,
+    original_name: Optional[str],
+    default_name: str,
+    results_dir: Path,
+) -> Path:
+    """Write bytes under results_dir using the upload basename only."""
+    base = Path(original_name or default_name).name
+    if not base or base in (".", ".."):
+        base = default_name
+    path = results_dir / base
+    path.write_bytes(data)
+    return path
+
+
 @app.post("/upload/")
 async def upload_images(
     images: List[UploadFile] = File(..., description="Image files"),
+    sura_name: UploadFile = File(..., description="Sura name border"),
+    aya_separator: UploadFile = File(..., description="Aya separator asset"),
     crop_x: int = Form(..., description="Left coordinate of crop rectangle"),
     crop_y: int = Form(..., description="Top coordinate of crop rectangle"),
     crop_w: int = Form(..., description="Width of crop rectangle"),
@@ -66,6 +84,18 @@ async def upload_images(
 
     results_dir = Path("results")
     results_dir.mkdir(exist_ok=True)
+
+    try:
+        sura_path = _save_upload_to_results(
+            await sura_name.read(), sura_name.filename, "sura_name.png", results_dir
+        )
+        logger.info(f"Saved {sura_path}")
+        aya_path = _save_upload_to_results(
+            await aya_separator.read(), aya_separator.filename, "aya_separator.png", results_dir
+        )
+        logger.info(f"Saved {aya_path}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save border assets: {e}") from e
 
     output_summary = []
 
@@ -110,8 +140,6 @@ async def upload_images(
         try:
             line_images = crop_lines(
                 cropped,
-                margin_x=0,
-                margin_y=0,
                 gap_threshold=gap_threshold,
                 min_line_height=min_line_height,
                 padding=padding,

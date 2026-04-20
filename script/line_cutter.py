@@ -4,8 +4,6 @@ from PIL import Image
 
 def get_line_boxes(
     image: Image.Image,
-    margin_x: int = 15,
-    margin_y: int = 25,
     gap_threshold: float = 0.03,
     min_line_height: int = 20,
     padding: int = 8,
@@ -16,14 +14,12 @@ def get_line_boxes(
     img = np.array(base.convert("L"), dtype=np.float32)
     h, w = img.shape
 
-    inner = img[margin_y : h - margin_y, margin_x : w - margin_x]
-
     # Auto-detect: dark bg (mean < 128) → gaps are low-sum rows
     #              light bg (mean > 128) → invert so gaps become low-sum rows
-    if inner.mean() > 128:
-        inner = 255.0 - inner  # now dark text becomes bright, white gaps become dark
+    if img.mean() > 128:
+        img = 255.0 - img  # now dark text becomes bright, white gaps become dark
 
-    row_sums = inner.sum(axis=1)
+    row_sums = img.sum(axis=1)
     gap_limit = row_sums.max() * gap_threshold
     is_gap = row_sums < gap_limit
 
@@ -46,10 +42,10 @@ def get_line_boxes(
         if (y2 - y1) < min_line_height:
             continue
         boxes.append({
-            "left":   margin_x,
-            "top":    max(0, y1 + margin_y - padding),
-            "right":  w - margin_x,
-            "bottom": min(h, y2 + margin_y + padding),
+            "left":   0,
+            "top":    max(0, y1 - padding),
+            "right":  w,
+            "bottom": min(h, y2 + padding),
         })
 
     return boxes
