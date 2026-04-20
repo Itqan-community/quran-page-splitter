@@ -109,6 +109,7 @@ def detect_lines(
 def classify_lines(
     line_images: list[Image.Image],
     sura_template: Image.Image,
+    line_params: dict,
     height_factor: float = 1.5,
     match_threshold: float = 0.5,
 ) -> list[bool]:
@@ -143,7 +144,8 @@ def classify_lines(
     )
 
     # Prepare template: keep leftmost 15% as the decoration strip
-    tmpl_gray = np.array(sura_template.convert("L"), dtype=np.uint8)
+    prep_template = crop_lines(sura_template, **line_params)[0]
+    tmpl_gray = np.array(prep_template.convert("L"), dtype=np.uint8)
     edge_w = max(1, int(tmpl_gray.shape[1] * 0.15))
     template_edge = tmpl_gray[:, :edge_w]
     logger.info(
@@ -314,7 +316,7 @@ def process_page(
     line_labels = None
     if sura_template is not None:
         try:
-            line_labels = classify_lines(line_images, sura_template)
+            line_labels = classify_lines(line_images, sura_template, line_params)
         except Exception as e:
             logger.warning("Classification failed for %s, skipping: %s", filename, e)
 
