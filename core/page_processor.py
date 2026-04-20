@@ -24,7 +24,7 @@ class PageProcessor:
         self.results_dir = results_dir
 
     def process(self, img: Image.Image, filename: str) -> dict:
-        """Crop → detect → classify → export. Returns a result dict."""
+        """Detect → classify → export. Returns a result dict."""
         # Detect
         try:
             line_images = self.detector.detect(img)
@@ -59,7 +59,7 @@ class PageProcessor:
 
         saved: list[str] = []
         text_idx = sura_idx = 0
-        for line_img, is_sura in zip(line_images, labels):
+        for line_img, is_sura in zip(line_images, labels, strict=True):
             if is_sura:
                 sura_idx += 1
                 name = f"{stem}-sura_name-{sura_idx}.png"

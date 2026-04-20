@@ -60,7 +60,11 @@ async def upload_images(
 
     # Load sura template and build classifier
     sura_data = await sura_name.read()
-    sura_template = Image.open(io.BytesIO(sura_data))
+    try:
+        sura_template = Image.open(io.BytesIO(sura_data))
+        sura_template.load()  # Force validation
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid sura template image: {e}")
     classifier = SuraClassifier(template=sura_template, detection=det_cfg)
 
     # Save aya separator (kept for output directory completeness)

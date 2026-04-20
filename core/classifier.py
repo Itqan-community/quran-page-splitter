@@ -27,7 +27,10 @@ class SuraClassifier:
         self, template: Image.Image, detection: DetectionConfig
     ) -> np.ndarray:
         """Crop the template with line detection, then keep the left 15% strip."""
-        prepped = crop_lines(template, **detection.as_dict())[0]
+        lines = crop_lines(template, **detection.as_dict())
+        if not lines:
+            raise ValueError("Template image contains no detectable lines")
+        prepped = lines[0]
         gray = np.array(prepped.convert("L"), dtype=np.uint8)
         edge_w = max(1, int(gray.shape[1] * 0.15))
         return gray[:, :edge_w]

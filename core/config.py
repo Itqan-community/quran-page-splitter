@@ -1,6 +1,6 @@
 """Shared configuration dataclasses for the line-cutter pipeline."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
