@@ -1,6 +1,6 @@
 # Quran Page Splitter
 
-A web application and CLI tool designed to process Mushaf (Quran) pages, intelligently crop the page bounds, automatically detect text lines, and classify Sura name decorations. It exports each line as a separate, transparent PNG image.
+A web application and CLI tool designed to process Mushaf (Quran) pages, intelligently crop the page bounds, automatically detect text lines, classify Sura name decorations, and split lines into individual aya segments. It exports each segment as a separate, transparent PNG image.
 
 This project is built for developers or data engineers who need to process datasets of Quran pages into line-by-line images.
 
@@ -8,7 +8,7 @@ This project is built for developers or data engineers who need to process datas
 
 - **Backend**: FastAPI server orchestrating image processing via Python (`Pillow`, `NumPy`, `OpenCV`).
 - **Frontend**: A vanilla HTML/JS/CSS dual-panel workspace for visual crop alignment and parameter tuning.
-- **Core Algorithm**: Uses horizontal projection profiles (row sums) to detect gaps between text lines, combined with `cv2.matchTemplate` to classify special elements like Sura name borders.
+- **Core Algorithm**: Uses horizontal projection profiles (row sums) to detect gaps between text lines, combined with `cv2.matchTemplate` to classify Sura name borders and locate aya separator ornaments within each line.
 
 ---
 
@@ -82,8 +82,8 @@ After line detection, each non-sura line is processed with the uploaded `aya_sep
 
 1. The separator template is cleaned to remove the number in the center.
 2. Short lines are trimmed from left/right empty margins.
-3. Repeated separator occurrences are detected and each line is split into segments.
-4. Each split keeps the separator in the preceding segment.
+3. Repeated separator occurrences are detected (at any vertical offset within the line) and the line is split into segments in **right-to-left** order to match Arabic reading direction.
+4. Each separator is included with the aya text to its right (the aya it terminates).
 
 If no separator is detected in a line, the line is kept as one output image.
 
@@ -124,6 +124,5 @@ _(Note: Edit the script manually to set your specific input PDF path and output 
 
 ## 🚧 Known Issues & Future Improvements
 
-1. **Odd/Even Margins**: Some Mushafs have different margins for odd and even pages. Currently, the UI applies a single uniform crop.
-2. **Performance**: Processing a massive Mushaf (500+ pages) synchronously takes time. Future iterations could use multiprocessing or asynchronous background tasks.
-3. **First Pages**: The first two pages of a Mushaf (Al-Fatiha and Al-Baqarah) are usually heavily decorated inside oval or circular borders. The current rectangle-based bounding box does not handle these cleanly; they should be processed manually or via a separate pipeline.
+1. **Performance**: Processing a massive Mushaf (500+ pages) synchronously takes time. Future iterations could use multiprocessing or asynchronous background tasks.
+2. **First Pages**: The first two pages of a Mushaf (Al-Fatiha and Al-Baqarah) are usually heavily decorated inside oval or circular borders. The current rectangle-based bounding box does not handle these cleanly; they should be processed manually or via a separate pipeline.
