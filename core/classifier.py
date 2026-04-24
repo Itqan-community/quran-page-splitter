@@ -42,18 +42,12 @@ class SuraClassifier:
 
         heights = [img.height for img in line_images]
         median_h = statistics.median(heights)
-        threshold_h = int(median_h * self.config.height_factor)
-        logger.info("classify: %d lines, median_h=%d, threshold_h=%d", len(line_images), median_h, threshold_h)
 
         results: list[bool] = []
         for idx, (img, h) in enumerate(zip(line_images, heights), start=1):
-            # Stage 1: height filter
             if len(line_images) >= 3 and h <= median_h * self.config.height_factor:
-                logger.debug("  line %d (h=%d): skipped by height filter", idx, h)
                 results.append(False)
                 continue
-
-            logger.info("  line %d (h=%d): candidate, running template match…", idx, h)
             results.append(self._match(img, idx))
 
         return results

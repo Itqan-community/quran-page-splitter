@@ -11,8 +11,8 @@ from PIL import Image
 
 @dataclass
 class AyaSeparatorConfig:
-    match_threshold: float = 0.45
-    short_line_ratio: float = 0.9
+    match_threshold: float = 0.55
+    short_line_ratio: float = 0.99
     min_segment_width: int = 8
 
 
@@ -70,43 +70,51 @@ class AyaSeparatorProcessor:
         )
         template = self.template
 
-        scale = line_binary.shape[0] / max(1, template.shape[0])
-        resized_w = max(2, int(template.shape[1] * scale))
-        resized_template = cv2.resize(
-            template, (resized_w, line_binary.shape[0]), interpolation=cv2.INTER_AREA
-        )
-        if resized_template.shape[1] >= line_binary.shape[1]:
+        # Template must fit inside the line in both dimensions.
+        if (
+            template.shape[0] > line_binary.shape[0]
+            or template.shape[1] >= line_binary.shape[1]
+        ):
             return []
 
         match_map = cv2.matchTemplate(
-            line_binary, resized_template, cv2.TM_CCOEFF_NORMED
+            line_binary, template, cv2.TM_CCOEFF_NORMED
         )
-        scores = match_map[0]
+        # Best score at each x-column regardless of y-position,
+        # since the separator can appear at any vertical offset.
+        scores = match_map.max(axis=0)
         candidate_x = np.where(scores >= self.config.match_threshold)[0]
         if candidate_x.size == 0:
             return []
 
         # Keep strongest non-overlapping matches.
         by_score = sorted(candidate_x.tolist(), key=lambda x: float(scores[x]), reverse=True)
-        min_gap = max(4, int(resized_template.shape[1] * 0.6))
+        min_gap = max(4, int(template.shape[1] * 0.6))
         selected: list[int] = []
         for x in by_score:
             if all(abs(x - s) >= min_gap for s in selected):
                 selected.append(x)
         selected.sort()
-        return [(x, x + resized_template.shape[1]) for x in selected]
+        return [(x, x + template.shape[1]) for x in selected]
 
     def _split_by_boxes(
         self, line_image: Image.Image, boxes: list[tuple[int, int]]
     ) -> list[Image.Image]:
+        """Split line at separator boxes, producing segments in RTL order.
+
+        Cuts at the LEFT edge of each separator so the separator circle
+        is included with the aya text to its right (the aya it terminates).
+        """
         width, height = line_image.size
+        min_w = self.config.min_segment_width
         parts: list[Image.Image] = []
-        start = 0
-        for _, right in boxes:
-            cut = min(width, right)
-            if cut - start >= self.config.min_segment_width:
-                parts.append(line_image.crop((start, 0, cut, height)))
-            start = cut
-        if width - start >= self.config.min_segment_width:
-            parts.append(line_image.crop((start, 0, width, height)))
+        end = width
+        for left, _ in reversed(boxes):  # right-to-left
+            cut = max(0, left)
+            if end - cut >= min_w:
+                parts.append(line_image.crop((cut, 0, end, height)))
+            end = cut
+        # Leftmost remaining text
+        if end >= min_w:
+            parts.append(line_image.crop((0, 0, end, height)))
         return parts if parts else [line_image]
