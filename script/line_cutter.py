@@ -41,12 +41,14 @@ def get_line_boxes(
     for y1, y2 in bands:
         if (y2 - y1) < min_line_height:
             continue
-        boxes.append({
-            "left":   0,
-            "top":    max(0, y1 - padding),
-            "right":  w,
-            "bottom": min(h, y2 + padding),
-        })
+        boxes.append(
+            {
+                "left": 0,
+                "top": max(0, y1 - padding),
+                "right": w,
+                "bottom": min(h, y2 + padding),
+            }
+        )
 
     return boxes
 

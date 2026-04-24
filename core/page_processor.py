@@ -45,7 +45,12 @@ class PageProcessor:
             return {"filename": filename, "status": "error", "message": str(e)}
 
         if not line_images:
-            return {"filename": filename, "status": "no_lines", "message": "No text lines detected", "outputs": []}
+            return {
+                "filename": filename,
+                "status": "no_lines",
+                "message": "No text lines detected",
+                "outputs": [],
+            }
 
         # Classify
         labels: list[bool] | None = None
@@ -53,7 +58,9 @@ class PageProcessor:
             try:
                 labels = self.classifier.classify(line_images)
             except Exception as e:
-                logger.warning("Classification failed for %s, skipping: %s", filename, e)
+                logger.warning(
+                    "Classification failed for %s, skipping: %s", filename, e
+                )
 
         prepared_lines = self._prepare_for_export(line_images, labels)
 
@@ -86,12 +93,16 @@ class PageProcessor:
             zip(line_images, labels, strict=True), start=1
         ):
             if is_sura or self.aya_separator is None:
-                prepared.append(PreparedLine(image=line_img, is_sura=is_sura, line_index=line_index))
+                prepared.append(
+                    PreparedLine(image=line_img, is_sura=is_sura, line_index=line_index)
+                )
                 continue
             split_parts = self.aya_separator.split_line(line_img)
             if len(split_parts) == 1:
                 prepared.append(
-                    PreparedLine(image=split_parts[0], is_sura=False, line_index=line_index)
+                    PreparedLine(
+                        image=split_parts[0], is_sura=False, line_index=line_index
+                    )
                 )
                 continue
             for segment_index, segment in enumerate(split_parts, start=1):

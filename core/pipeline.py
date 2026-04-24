@@ -2,7 +2,6 @@
 
 import io
 import logging
-from pathlib import Path
 
 from PIL import Image
 
@@ -24,7 +23,9 @@ class Pipeline:
                 img = Image.open(io.BytesIO(raw_bytes))
             except Exception as e:
                 logger.error("Failed to open %s: %s", filename, e)
-                results.append({"filename": filename, "status": "error", "message": str(e)})
+                results.append(
+                    {"filename": filename, "status": "error", "message": str(e)}
+                )
                 continue
             results.append(self.processor.process(img, filename, page_index=page_index))
         return results

@@ -77,9 +77,7 @@ class AyaSeparatorProcessor:
         ):
             return []
 
-        match_map = cv2.matchTemplate(
-            line_binary, template, cv2.TM_CCOEFF_NORMED
-        )
+        match_map = cv2.matchTemplate(line_binary, template, cv2.TM_CCOEFF_NORMED)
         # Best score at each x-column regardless of y-position,
         # since the separator can appear at any vertical offset.
         scores = match_map.max(axis=0)
@@ -88,7 +86,9 @@ class AyaSeparatorProcessor:
             return []
 
         # Keep strongest non-overlapping matches.
-        by_score = sorted(candidate_x.tolist(), key=lambda x: float(scores[x]), reverse=True)
+        by_score = sorted(
+            candidate_x.tolist(), key=lambda x: float(scores[x]), reverse=True
+        )
         min_gap = max(4, int(template.shape[1] * 0.6))
         selected: list[int] = []
         for x in by_score:

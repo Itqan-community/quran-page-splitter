@@ -68,11 +68,15 @@ class SuraClassifier:
             tmpl_resized.shape[0] > search_region.shape[0]
             or tmpl_resized.shape[1] > search_region.shape[1]
         ):
-            logger.warning("  line %d: template larger than search region, skipping", idx)
+            logger.warning(
+                "  line %d: template larger than search region, skipping", idx
+            )
             return False
 
         result = cv2.matchTemplate(search_region, tmpl_resized, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, _ = cv2.minMaxLoc(result)
         is_sura = max_val >= self.config.match_threshold
-        logger.info("  line %d: score=%.4f → %s", idx, max_val, "SURA" if is_sura else "normal")
+        logger.info(
+            "  line %d: score=%.4f → %s", idx, max_val, "SURA" if is_sura else "normal"
+        )
         return is_sura

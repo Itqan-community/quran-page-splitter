@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image
 import io
 
-from core.config import CropConfig, DetectionConfig, ClassifierConfig, ProcessingConfig
+from core.config import CropConfig, DetectionConfig, ProcessingConfig
 from core.line_detector import LineDetector
 from core.classifier import SuraClassifier
 from core.page_processor import PageProcessor
@@ -58,7 +58,9 @@ async def upload_images(
 
     # Build configs
     crop_cfg = CropConfig(x=crop_x, y=crop_y, w=crop_w, h=crop_h)
-    det_cfg = DetectionConfig(gap_threshold=gap_threshold, min_line_height=min_line_height, padding=padding)
+    det_cfg = DetectionConfig(
+        gap_threshold=gap_threshold, min_line_height=min_line_height, padding=padding
+    )
     proc_cfg = ProcessingConfig(alternate_horizontal_margin=alternate_horizontal_margin)
 
     # Load sura template and build classifier

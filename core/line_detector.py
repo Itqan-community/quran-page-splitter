@@ -27,9 +27,9 @@ class LineDetector:
             self.processing.alternate_horizontal_margin and page_index % 2 == 0
         )
         crop_x = (img_w - (x + w)) if should_swap else x
-        left   = max(0, crop_x)
-        top    = max(0, y)
-        right  = min(img_w, left + w)
+        left = max(0, crop_x)
+        top = max(0, y)
+        right = min(img_w, left + w)
         bottom = min(img_h, top + h)
         if right <= left or bottom <= top:
             raise ValueError("Crop rectangle is outside image bounds")

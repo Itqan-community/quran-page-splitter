@@ -17,13 +17,13 @@ def main():
     parser = argparse.ArgumentParser(description="Split a Mushaf page into line crops.")
     parser.add_argument("image_path", type=str)
     parser.add_argument("output_dir", type=str, nargs="?", default="output")
-    parser.add_argument("--crop-x",          type=int,   default=45)
-    parser.add_argument("--crop-y",          type=int,   default=60)
-    parser.add_argument("--crop-w",          type=int,   default=45)
-    parser.add_argument("--crop-h",          type=int,   default=60)
-    parser.add_argument("--gap-threshold",   type=float, default=0.03)
-    parser.add_argument("--min-line-height", type=int,   default=20)
-    parser.add_argument("--padding",         type=int,   default=4)
+    parser.add_argument("--crop-x", type=int, default=45)
+    parser.add_argument("--crop-y", type=int, default=60)
+    parser.add_argument("--crop-w", type=int, default=45)
+    parser.add_argument("--crop-h", type=int, default=60)
+    parser.add_argument("--gap-threshold", type=float, default=0.03)
+    parser.add_argument("--min-line-height", type=int, default=20)
+    parser.add_argument("--padding", type=int, default=4)
     args = parser.parse_args()
 
     results_dir = Path(args.output_dir)
@@ -37,7 +37,9 @@ def main():
     )
 
     detector = LineDetector(crop=crop_cfg, detection=det_cfg)
-    processor = PageProcessor(detector=detector, results_dir=results_dir)  # no classifier in CLI
+    processor = PageProcessor(
+        detector=detector, results_dir=results_dir
+    )  # no classifier in CLI
     pipeline = Pipeline(processor=processor)
 
     image_path = Path(args.image_path)

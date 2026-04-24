@@ -1,7 +1,7 @@
 [project]
 name = "quran-page-spliter"
 version = "0.1.0"
-description = "Add your description here"
+description = "A small web application and CLI tool for processing Mushaf (Quran) pages, intelligently crop the page bounds, automatically detect text lines, classify Sura name decorations, and split lines into individual aya segments."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,4 +12,9 @@ dependencies = [
     "pillow>=12.2.0",
     "python-multipart>=0.0.26",
     "uvicorn>=0.44.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
 ]
