@@ -52,6 +52,22 @@ class SuraClassifier:
 
         return results
 
+    def classify_single(
+        self,
+        img: Image.Image,
+        median_h: float,
+        total_lines: int,
+        idx: int = 0,
+    ) -> bool:
+        """Classify a single line given pre-computed median height.
+
+        This allows inline classification during sequential processing
+        without requiring all line images upfront.
+        """
+        if total_lines >= 3 and img.height <= median_h * self.config.height_factor:
+            return False
+        return self._match(img, idx)
+
     def _match(self, img: Image.Image, idx: int) -> bool:
         line_gray = np.array(img.convert("L"), dtype=np.uint8)
         edge = self._template_edge

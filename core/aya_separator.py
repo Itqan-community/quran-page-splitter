@@ -16,6 +16,16 @@ class AyaSeparatorConfig:
     min_segment_width: int = 8
 
 
+@dataclass
+class SegmentResult:
+    """A segment produced by splitting a line at aya separators."""
+
+    image: Image.Image
+    x_start: int  # left edge in the *original* (untrimmed) line image
+    x_end: int  # right edge in the *original* (untrimmed) line image
+    has_separator: bool  # True if this segment contains an aya separator
+
+
 class AyaSeparatorProcessor:
     def __init__(self, template: Image.Image, config: AyaSeparatorConfig | None = None):
         self.config = config or AyaSeparatorConfig()
@@ -27,6 +37,30 @@ class AyaSeparatorProcessor:
         if not boxes:
             return [maybe_trimmed]
         return self._split_by_boxes(maybe_trimmed, boxes)
+
+    def split_line_with_coords(
+        self, line_image: Image.Image
+    ) -> list[SegmentResult]:
+        """Split a line and return segments with coordinate info.
+
+        Each SegmentResult has x_start/x_end relative to the *original*
+        (untrimmed) line image, and a has_separator flag indicating whether
+        the segment contains an aya separator ornament.
+        """
+        maybe_trimmed, trim_x = self._trim_if_short_with_offset(line_image)
+        boxes = self._detect_separator_boxes(maybe_trimmed)
+
+        if not boxes:
+            return [
+                SegmentResult(
+                    image=maybe_trimmed,
+                    x_start=trim_x,
+                    x_end=trim_x + maybe_trimmed.width,
+                    has_separator=False,
+                )
+            ]
+
+        return self._split_by_boxes_with_coords(maybe_trimmed, boxes, trim_x)
 
     def _prepare_template(self, template: Image.Image) -> np.ndarray:
         trimmed = self._trim_to_content(template)
@@ -52,6 +86,16 @@ class AyaSeparatorProcessor:
             return trimmed
         return line_image
 
+    def _trim_if_short_with_offset(
+        self, line_image: Image.Image
+    ) -> tuple[Image.Image, int]:
+        """Trim short lines and return (trimmed_image, x_offset_in_original)."""
+        trimmed, x_offset = self._trim_to_content_with_offset(line_image)
+        ratio = trimmed.width / max(1, line_image.width)
+        if ratio < self.config.short_line_ratio:
+            return trimmed, x_offset
+        return line_image, 0
+
     def _trim_to_content(self, image: Image.Image) -> Image.Image:
         gray = np.array(image.convert("L"), dtype=np.uint8)
         _, binary_inv = cv2.threshold(
@@ -62,6 +106,20 @@ class AyaSeparatorProcessor:
             return image
         x, y, w, h = cv2.boundingRect(non_zero)
         return image.crop((x, y, x + w, y + h))
+
+    def _trim_to_content_with_offset(
+        self, image: Image.Image
+    ) -> tuple[Image.Image, int]:
+        """Trim to content and return (trimmed_image, x_offset)."""
+        gray = np.array(image.convert("L"), dtype=np.uint8)
+        _, binary_inv = cv2.threshold(
+            gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )
+        non_zero = cv2.findNonZero(binary_inv)
+        if non_zero is None:
+            return image, 0
+        x, y, w, h = cv2.boundingRect(non_zero)
+        return image.crop((x, y, x + w, y + h)), x
 
     def _detect_separator_boxes(self, line_image: Image.Image) -> list[tuple[int, int]]:
         line_gray = np.array(line_image.convert("L"), dtype=np.uint8)
@@ -118,3 +176,55 @@ class AyaSeparatorProcessor:
         if end >= min_w:
             parts.append(line_image.crop((0, 0, end, height)))
         return parts if parts else [line_image]
+
+    def _split_by_boxes_with_coords(
+        self,
+        line_image: Image.Image,
+        boxes: list[tuple[int, int]],
+        trim_x: int,
+    ) -> list[SegmentResult]:
+        """Split at separator boxes and return SegmentResults in RTL order.
+
+        Coordinates are translated back to the original (untrimmed) line
+        image space by adding ``trim_x``.
+        """
+        width, height = line_image.size
+        min_w = self.config.min_segment_width
+        results: list[SegmentResult] = []
+        end = width
+
+        for left, _ in reversed(boxes):  # right-to-left
+            cut = max(0, left)
+            if end - cut >= min_w:
+                results.append(
+                    SegmentResult(
+                        image=line_image.crop((cut, 0, end, height)),
+                        x_start=trim_x + cut,
+                        x_end=trim_x + end,
+                        has_separator=True,
+                    )
+                )
+            end = cut
+
+        # Leftmost remaining text — no separator
+        if end >= min_w:
+            results.append(
+                SegmentResult(
+                    image=line_image.crop((0, 0, end, height)),
+                    x_start=trim_x,
+                    x_end=trim_x + end,
+                    has_separator=False,
+                )
+            )
+
+        if not results:
+            return [
+                SegmentResult(
+                    image=line_image,
+                    x_start=trim_x,
+                    x_end=trim_x + width,
+                    has_separator=False,
+                )
+            ]
+        return results
+
