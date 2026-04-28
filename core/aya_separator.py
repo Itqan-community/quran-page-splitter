@@ -11,8 +11,8 @@ from PIL import Image
 
 @dataclass
 class AyaSeparatorConfig:
-    match_threshold: float = 0.55
-    short_line_ratio: float = 0.99
+    match_threshold: float = 0.40
+    short_line_ratio: float = 0.90
     min_segment_width: int = 8
 
 
@@ -71,8 +71,8 @@ class AyaSeparatorProcessor:
 
         # Remove inner number by masking the central area.
         h, w = binary_inv.shape
-        cx1, cx2 = int(w * 0.30), int(w * 0.70)
-        cy1, cy2 = int(h * 0.20), int(h * 0.80)
+        cx1, cx2 = int(w * 0.20), int(w * 0.80)
+        cy1, cy2 = int(h * 0.30), int(h * 0.70)
         binary_inv[cy1:cy2, cx1:cx2] = 0
 
         kernel = np.ones((2, 2), dtype=np.uint8)
