@@ -41,6 +41,7 @@ def main():
     parser.add_argument(
         "output",
         type=str,
+        default="output.json",
         help="Output JSON file path.",
     )
 
@@ -49,12 +50,14 @@ def main():
         "--sura-template",
         type=str,
         required=True,
+        default="sura_name.png",
         help="Path to sura name template image.",
     )
     parser.add_argument(
         "--aya-template",
         type=str,
         required=True,
+        default="aya_separator.png",
         help="Path to aya separator template image.",
     )
 

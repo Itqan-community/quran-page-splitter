@@ -69,6 +69,8 @@ async def upload_images(
 
     # Load sura template and build classifier
     sura_data = await sura_name.read()
+    sura_path = results_dir / (sura_name.filename or "sura_name.png")
+    sura_path.write_bytes(sura_data)
     try:
         sura_template = Image.open(io.BytesIO(sura_data))
         sura_template.load()  # Force validation
