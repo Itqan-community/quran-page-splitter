@@ -1,5 +1,7 @@
 """FastAPI server — builds the pipeline from HTTP form data and runs it."""
 
+import os
+import shutil
 import logging
 from pathlib import Path
 from typing import List
@@ -54,7 +56,9 @@ async def upload_images(
         raise HTTPException(status_code=400, detail="Invalid crop dimensions")
 
     results_dir = Path("results")
-    results_dir.mkdir(exist_ok=True)
+    if os.path.exists(results_dir):
+        shutil.rmtree(results_dir)
+    os.makedirs(results_dir)
 
     # Build configs
     crop_cfg = CropConfig(x=crop_x, y=crop_y, w=crop_w, h=crop_h)

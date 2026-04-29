@@ -121,6 +121,16 @@ class PageProcessor:
         prepared_lines: list[PreparedLine],
         stem: str,
     ) -> list[str]:
+        """
+        Export prepared lines to files.
+
+        Args:
+            prepared_lines: List of PreparedLine objects
+            stem: Base filename without extension
+
+        Returns:
+            List of paths to saved files
+        """
         saved: list[str] = []
         sura_idx = 0
         for prepared in prepared_lines:

@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-
+import logging
 import cv2
 import numpy as np
 from PIL import Image
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class AyaSeparatorConfig:
-    match_threshold: float = 0.40
-    short_line_ratio: float = 0.90
+    match_threshold: float = 0.35
+    short_line_ratio: float = 0.98
     min_segment_width: int = 8
 
 
@@ -72,12 +73,10 @@ class AyaSeparatorProcessor:
         # Remove inner number by masking the central area.
         h, w = binary_inv.shape
         cx1, cx2 = int(w * 0.20), int(w * 0.80)
-        cy1, cy2 = int(h * 0.30), int(h * 0.70)
+        cy1, cy2 = int(h * 0.20), int(h * 0.80)
         binary_inv[cy1:cy2, cx1:cx2] = 0
 
-        kernel = np.ones((2, 2), dtype=np.uint8)
-        cleaned = cv2.dilate(binary_inv, kernel, iterations=1)
-        return cleaned
+        return binary_inv
 
     def _trim_if_short(self, line_image: Image.Image) -> Image.Image:
         trimmed = self._trim_to_content(line_image)
@@ -128,32 +127,70 @@ class AyaSeparatorProcessor:
         )
         template = self.template
 
-        # Template must fit inside the line in both dimensions.
-        if (
-            template.shape[0] > line_binary.shape[0]
-            or template.shape[1] >= line_binary.shape[1]
-        ):
+        best_scores = None
+        best_template_w = template.shape[1]
+
+        # 1. DYNAMIC SCALING
+        # Base the scaling on the line's actual height rather than a fixed ratio.
+        # This prevents the template from being too massive or too tiny.
+        base_scale = line_binary.shape[0] / template.shape[0]
+        
+        # Test scales from 60% to 130% of the base line height
+        scales = np.arange(base_scale * 0.60, base_scale * 1.31, base_scale * 0.05)
+
+        # 2. VERTICAL PADDING
+        # If the line is cropped tightly, the top and bottom of the Aya separator 
+        # might be cut off. We pad the binary image vertically with black (0) 
+        # so taller scaled templates don't cause dimension errors and get skipped.
+        max_h = int(template.shape[0] * max(scales))
+        pad_y = max(0, max_h - line_binary.shape[0]) // 2 + 5
+        
+        padded_line = cv2.copyMakeBorder(
+            line_binary, 
+            pad_y, pad_y, 0, 0, 
+            cv2.BORDER_CONSTANT, value=0
+        )
+
+        for scale in scales:
+            new_h = int(template.shape[0] * scale)
+            new_w = int(template.shape[1] * scale)
+            
+            # Guard against invalid dimensions for cv2.matchTemplate
+            if new_h <= 0 or new_w <= 0 or new_w >= padded_line.shape[1]:
+                continue
+                
+            scaled = cv2.resize(template, (new_w, new_h), interpolation=cv2.INTER_AREA)
+            match_map = cv2.matchTemplate(padded_line, scaled, cv2.TM_CCOEFF_NORMED)
+            
+            # Collapse the 2D match map to 1D (taking the max score across all Y positions)
+            scores = match_map.max(axis=0)
+            
+            if best_scores is None or scores.max() > best_scores.max():
+                best_scores = scores
+                best_template_w = new_w
+
+        if best_scores is None or best_scores.max() < self.config.match_threshold:
             return []
 
-        match_map = cv2.matchTemplate(line_binary, template, cv2.TM_CCOEFF_NORMED)
-        # Best score at each x-column regardless of y-position,
-        # since the separator can appear at any vertical offset.
-        scores = match_map.max(axis=0)
-        candidate_x = np.where(scores >= self.config.match_threshold)[0]
+        candidate_x = np.where(best_scores >= self.config.match_threshold)[0]
         if candidate_x.size == 0:
             return []
 
-        # Keep strongest non-overlapping matches.
+        # Keep strongest non-overlapping matches
         by_score = sorted(
-            candidate_x.tolist(), key=lambda x: float(scores[x]), reverse=True
+            candidate_x.tolist(), key=lambda x: float(best_scores[x]), reverse=True
         )
-        min_gap = max(4, int(template.shape[1] * 0.6))
+        min_gap = max(4, int(best_template_w * 0.6))
         selected: list[int] = []
         for x in by_score:
             if all(abs(x - s) >= min_gap for s in selected):
                 selected.append(x)
+        
         selected.sort()
-        return [(x, x + template.shape[1]) for x in selected]
+        
+        # Because we only padded vertically, the X coordinates remain perfectly intact
+        # and seamlessly map back to the original unpadded line_image.
+        return [(x, x + best_template_w) for x in selected]
 
     def _split_by_boxes(
         self, line_image: Image.Image, boxes: list[tuple[int, int]]
